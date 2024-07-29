@@ -1,0 +1,46 @@
+// MainActivity.kt
+import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
+class MainActivity : AppCompatActivity(), OnMapReadyCallback {
+
+    private lateinit var map: GoogleMap
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+    }
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        map = googleMap
+        fetchVehiclePositions()
+    }
+
+    private fun fetchVehiclePositions() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val response = OlhoVivoApiService.api.getVehiclePositions()
+            runOnUiThread {
+                response.vehiclePositions.forEach {
+                    val position = LatLng(it.latitude, it.longitude)
+                    map.addMarker(MarkerOptions().position(position).title("Ônibus ${it.prefix}"))
+                }
+                val firstPosition = response.vehiclePositions.firstOrNull()
+                firstPosition?.let {
+                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(it.latitude, it.longitude), 12f))
+                }
+            }
+        }
+    }
+}

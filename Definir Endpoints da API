@@ -1,0 +1,14 @@
+// OlhoVivoApi.kt
+import retrofit2.http.GET
+import retrofit2.http.Query
+
+interface OlhoVivoApi {
+    @GET("Posicao")
+    suspend fun getVehiclePositions(): VehiclePositionsResponse
+
+    @GET("Linha/Buscar")
+    suspend fun getBusLines(@Query("termosBusca") searchTerm: String): List<BusLine>
+
+    @GET("Parada/Buscar")
+    suspend fun getBusStops(@Query("termosBusca") searchTerm: String): List<BusStop>
+}
